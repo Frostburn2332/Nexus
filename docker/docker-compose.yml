@@ -34,5 +34,17 @@ services:
       postgres:
         condition: service_healthy
 
+  web:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${BACKEND_URL:-http://localhost:8000}
+    container_name: nexus-web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
