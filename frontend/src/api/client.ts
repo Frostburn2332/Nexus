@@ -4,7 +4,7 @@ const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // In-memory token store
 let _accessToken: string | null = null;
-let isRefreshing = false; // Prevents multiple simultaneous refresh calls
+let _isRefreshing = false; // Prevents multiple simultaneous refresh calls
 
 export function getAccessToken(): string | null {
   return _accessToken;
