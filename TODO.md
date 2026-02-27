@@ -13,32 +13,32 @@
 - [x] Add environment configuration (`.env.example`)
 
 ## Phase 2: Database Layer
-- [ ] PostgreSQL schema and init scripts (`docker/init-scripts/init.sql`)
-- [ ] SQLAlchemy models (Organization, User, Invitation)
-- [ ] Database connection and session factory
-- [ ] Repository layer (CRUD for organizations, users, invitations)
+- [x] PostgreSQL schema and init scripts (`docker/init-scripts/init.sql`)
+- [x] SQLAlchemy models (Organization, User, Invitation)
+- [x] Database connection and session factory
+- [x] Repository layer (CRUD for organizations, users, invitations)
 
 ## Phase 3: Authentication Core
-- [ ] Google OAuth 2.0 client
-- [ ] JWT token management (create, verify, refresh)
-- [ ] RBAC permission system (roles, permission matrix)
-- [ ] Auth dependencies (`get_current_user`, `require_role`)
+- [x] Google OAuth 2.0 client
+- [x] JWT token management (create, verify, refresh)
+- [x] RBAC permission system (roles, permission matrix)
+- [x] Auth dependencies (`get_current_user`, `require_role`)
 
 ## Phase 4: Business Logic
-- [ ] Organization service (create, lookup)
-- [ ] User service (CRUD, role assignment, email-org validation)
-- [ ] Invitation service (create, validate token, accept, email match enforcement)
+- [x] Organization service (create, lookup)
+- [x] User service (CRUD, role assignment, email-org validation)
+- [x] Invitation service (create, validate token, accept, email match enforcement)
 
 ## Phase 5: Email Service
 - [ ] Abstract email provider interface
 - [ ] Console email provider (logs invitation links to stdout)
 
 ## Phase 6: API Layer
-- [ ] FastAPI app setup with CORS and lifespan events
-- [ ] Health check routes
-- [ ] Auth routes (register, login, callback, logout, refresh)
-- [ ] User management routes (list, update role, delete)
-- [ ] Invitation routes (create, accept, list)
+- [x] FastAPI app setup with CORS and lifespan events
+- [x] Health check routes
+- [x] Auth routes (register, login, callback, logout, refresh)
+- [x] User management routes (list, update role, delete)
+- [x] Invitation routes (create, accept, list)
 
 ## Phase 7: Docker & CI
 - [ ] Backend Dockerfile
