@@ -18,28 +18,28 @@ export default function UserCard({
   const canDelete = currentUserRole === "admin";
 
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:shadow-md">
+    <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
       {/* Avatar + info */}
       <div className="flex items-center gap-4">
         {user.profile_picture ? (
           <img
             src={user.profile_picture}
             alt={user.name}
-            className="h-10 w-10 rounded-full object-cover"
+            className="h-10 w-10 shrink-0 rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <div>
-          <p className="text-sm font-medium text-gray-900">{user.name}</p>
-          <p className="text-xs text-gray-500">{user.email}</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-gray-900">{user.name}</p>
+          <p className="truncate text-xs text-gray-500">{user.email}</p>
         </div>
       </div>
 
-      {/* Role + status + actions */}
-      <div className="flex items-center gap-3">
+      {/* Badges + actions */}
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <RoleBadge role={user.role} />
 
         <span
@@ -55,7 +55,7 @@ export default function UserCard({
         {canManage && (
           <button
             onClick={() => onChangeRole?.(user)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 active:scale-95"
           >
             Edit role
           </button>
@@ -64,7 +64,7 @@ export default function UserCard({
         {canDelete && (
           <button
             onClick={() => onDelete?.(user)}
-            className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50 transition"
+            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 active:scale-95"
           >
             Remove
           </button>
