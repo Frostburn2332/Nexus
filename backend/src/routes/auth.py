@@ -14,6 +14,7 @@ from src.auth.oauth import build_google_auth_url, exchange_code_for_tokens, get_
 from src.auth.jwt import create_access_token, create_refresh_token, verify_refresh_token
 from src.repositories import UserRepository
 from src.services import OrganizationService, UserService, InvitationService
+from src.services.email import get_email_provider
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -85,7 +86,8 @@ async def google_callback(
         if not invitation_token:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation token is required")
 
-        invitation_service = InvitationService(db)
+        email_provider = get_email_provider(settings.email_provider)
+        invitation_service = InvitationService(db, email_provider)
         user = await invitation_service.accept_invitation(
             token=invitation_token, oauth_email=email, oauth_name=name, profile_picture=picture
         )

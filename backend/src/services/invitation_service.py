@@ -7,17 +7,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
 from src.models import Invitation, InvitationStatus, User, UserRole, UserStatus
-from src.repositories import InvitationRepository, UserRepository
+from src.repositories import InvitationRepository, OrganizationRepository, UserRepository
+from src.services.email import EmailProvider
 
 
 INVITATION_EXPIRY_DAYS = 7
 
 
 class InvitationService:
-    def __init__(self, db: AsyncSession) -> None:
+    def __init__(self, db: AsyncSession, email_provider: EmailProvider) -> None:
         self.db = db
         self.invitation_repo = InvitationRepository(db)
         self.user_repo = UserRepository(db)
+        self.org_repo = OrganizationRepository(db)
+        self.email_provider = email_provider
 
     async def create_invitation(
         self, organization_id: uuid.UUID, email: str, name: str, role: UserRole, invited_by: uuid.UUID
@@ -49,11 +52,16 @@ class InvitationService:
             expires_at=expires_at,
         )
 
+        inviter = await self.user_repo.get_by_id(invited_by)
+        org = await self.org_repo.get_by_id(organization_id)
         invitation_link = f"{settings.frontend_url}/invite/accept?token={token}"
-        print(f"\n{'='*60}")
-        print(f"INVITATION LINK for {email}:")
-        print(f"{invitation_link}")
-        print(f"{'='*60}\n")
+
+        await self.email_provider.send_invitation(
+            to_email=email,
+            inviter_name=inviter.name if inviter else "A team member",
+            organization_name=org.name if org else "your organization",
+            invitation_link=invitation_link,
+        )
 
         return invitation
 
