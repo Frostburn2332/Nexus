@@ -41,31 +41,31 @@
 - [x] Invitation routes (create, accept, list)
 
 ## Phase 7: Docker & CI
-- [ ] Backend Dockerfile
-- [ ] Docker Compose (API + PostgreSQL)
-- [ ] GitHub Actions CI pipeline (lint, test, build)
+- [x] Backend Dockerfile
+- [x] Docker Compose (API + PostgreSQL)
+- [x] GitHub Actions CI pipeline (lint, test, build)
 
 ## Phase 8: Tests
-- [ ] Test configuration and fixtures
-- [ ] Unit tests (services, RBAC)
-- [ ] Integration tests (API endpoints, auth flow, invitation flow)
+- [x] Test configuration and fixtures
+- [x] Unit tests (services, RBAC)
+- [x] Integration tests (API endpoints, auth flow, invitation flow)
 
 ## Phase 9: Frontend -- Core
-- [ ] TypeScript types and API client (Axios)
-- [ ] Auth context and protected routes
-- [ ] Layout and navigation
-- [ ] Registration page
+- [x] TypeScript types and API client (Axios)
+- [x] Auth context and protected routes
+- [x] Layout and navigation
+- [x] Registration page
 
 ## Phase 10: Frontend -- Pages
-- [ ] Login page
-- [ ] Dashboard and user list
-- [ ] Invite user modal
-- [ ] Role management and user actions
+- [x] Login page
+- [x] Dashboard and user list
+- [x] Invite user modal
+- [x] Role management and user actions
 
 ## Phase 11: Frontend -- Polish
-- [ ] Search, filter, and toast notifications
-- [ ] Responsive design and UI polish
-- [ ] Accept invitation page
+- [x] Search, filter, and toast notifications
+- [x] Responsive design and UI polish
+- [x] Accept invitation page
 
 ## Phase 12: Deployment & Documentation
 - [ ] Frontend Docker containerization
