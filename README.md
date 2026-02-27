@@ -1,168 +1,322 @@
 # Nexus
 
-A multi-tenant user management web application with Google OAuth 2.0 authentication, role-based access control (RBAC), and invitation-based user onboarding.
+A multi-tenant user management web application with Google OAuth 2.0, role-based access control (RBAC), and invitation-based onboarding.
+
+---
 
 ## Overview
 
-Nexus allows organizations to manage their users through a secure, role-gated platform. An organization admin registers their company, invites team members via email, and controls access through three distinct roles: **Admin**, **Manager**, and **Viewer**.
+Nexus lets organizations manage their members through a clean, modern dashboard. An admin registers their organization, invites teammates via email, and controls who has what level of access — all backed by secure Google OAuth sign-in and short-lived JWTs.
 
-### Key Features
+### Key capabilities
 
-- **Multi-tenancy** -- Each organization is isolated. Users belong to exactly one organization, identified by their email + organization combination.
-- **Google OAuth 2.0** -- Secure authentication using Google Identity Services. No passwords to manage.
-- **Invitation-based onboarding** -- Admins and Managers invite users by email. Invited users complete Google OAuth to activate their account. The OAuth email **must** match the invitation email (401 on mismatch).
-- **Role-based access control** -- Three roles with escalating permissions:
-  - **Viewer** -- Read-only access to the user list.
-  - **Manager** -- Can invite users and assign/modify roles.
-  - **Admin** -- Full CRUD access including user deletion.
-- **JWT dual-token authentication** -- Short-lived access tokens (~15 min) with refresh token rotation for session continuity.
+- **Organization registration** — first user creates an org; all subsequent members join via invitation
+- **Google OAuth 2.0** — no passwords; identity is delegated entirely to Google
+- **RBAC** — three roles (Admin, Manager, Viewer) with a permission matrix enforced at both the API and UI layers
+- **Invitation flow** — admin sends an invitation link; recipient signs in with Google; the backend enforces that the Google email matches the invited address
+- **JWT dual-token auth** — short-lived access token (15 min, in-memory) + long-lived refresh token (7 days, httpOnly cookie)
+- **Pluggable email** — ships with a console provider (logs invitation links to stdout); swap in SendGrid/Resend by implementing one interface
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| **Backend** | Python 3.12+, FastAPI, SQLAlchemy |
-| **Authentication** | Google OAuth 2.0, JWT (PyJWT) |
-| **Database** | PostgreSQL (Neon in production) |
-| **Frontend** | React, Vite, TypeScript |
-| **Styling** | Tailwind CSS |
-| **Containerization** | Docker, Docker Compose |
-| **CI/CD** | GitHub Actions |
-| **Deployment** | Vercel (frontend), Render (backend), Neon (database) |
+| Backend | Python 3.12, FastAPI, SQLAlchemy (async) |
+| Auth | Google OAuth 2.0, PyJWT |
+| Database | PostgreSQL (Neon in production) |
+| Frontend | React 18, Vite, TypeScript |
+| Styling | Tailwind CSS |
+| Containerization | Docker, Docker Compose |
+| CI | GitHub Actions |
+| Deployment | Vercel (frontend), Render (backend), Neon (database) |
 
-## Project Structure
+---
+
+## Repository Structure
 
 ```
 Nexus/
 ├── backend/
 │   ├── src/
-│   │   ├── main.py              # FastAPI entrypoint
-│   │   ├── config.py            # Environment configuration
-│   │   ├── db/                  # Database connection and session
-│   │   ├── models/              # SQLAlchemy models
-│   │   ├── repositories/        # Data access layer (CRUD)
-│   │   ├── services/            # Business logic
-│   │   ├── auth/                # OAuth, JWT, RBAC, dependencies
-│   │   └── routes/              # API endpoints
+│   │   ├── main.py              # FastAPI app, CORS, lifespan
+│   │   ├── config.py            # Pydantic settings (reads .env)
+│   │   ├── db/                  # Async engine + session factory
+│   │   ├── models/              # SQLAlchemy ORM models
+│   │   ├── repositories/        # CRUD layer (no business logic)
+│   │   ├── services/            # Business logic + email provider
+│   │   ├── auth/                # OAuth, JWT, RBAC, FastAPI deps
+│   │   └── routes/              # FastAPI routers
 │   ├── Dockerfile
 │   ├── pyproject.toml
 │   └── requirements.txt
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── api/                 # Axios client and API calls
-│   │   ├── context/             # Auth state management
-│   │   ├── components/          # Reusable UI components
+│   │   ├── api/                 # Axios client + typed endpoints
+│   │   ├── context/             # Auth context (token storage)
+│   │   ├── components/          # Shared UI components
 │   │   ├── pages/               # Route-level page components
-│   │   └── types/               # TypeScript type definitions
+│   │   ├── hooks/               # Custom React hooks
+│   │   └── types/               # TypeScript types
+│   ├── Dockerfile               # Multi-stage: Node build → nginx
+│   ├── nginx.conf               # SPA routing + security headers
+│   ├── index.html
 │   ├── package.json
-│   └── vite.config.ts
+│   ├── vite.config.ts
+│   └── tailwind.config.js
 │
 ├── docker/
-│   ├── docker-compose.yml
-│   └── init-scripts/
+│   ├── docker-compose.yml       # postgres + api + web
+│   └── init-scripts/init.sql   # Schema DDL
 │
 ├── tests/
-│   ├── unit/
-│   └── integration/
+│   ├── conftest.py
+│   ├── unit/                    # Service + RBAC unit tests
+│   └── integration/             # API endpoint tests
 │
-└── docs/
+├── docs/
+│   ├── overview.md
+│   └── architecture.md
+│
+├── .github/workflows/ci.yml
+├── .env.example
+└── TODO.md
 ```
 
-## Problem Breakdown
+---
 
-The project was built incrementally, bottom-up:
-
-1. **Foundation** -- Documentation, architecture decisions, and project scaffolding before any code.
-2. **Database layer** -- PostgreSQL schema, SQLAlchemy models, and repository pattern for data access.
-3. **Authentication core** -- Google OAuth client, JWT token management, RBAC permission system, and FastAPI auth dependencies.
-4. **Business logic** -- Service layer for organizations, users, and invitations -- decoupled from the HTTP layer.
-5. **Email service** -- Abstract provider pattern. Console-logged invitation links initially, swappable for a real provider (SendGrid, Resend) later.
-6. **API layer** -- FastAPI routes wiring services together with auth guards.
-7. **Infrastructure** -- Docker Compose for local development, GitHub Actions CI pipeline.
-8. **Testing** -- Unit tests for services and RBAC logic, integration tests for API endpoints.
-9. **Frontend** -- React app with auth context, protected routes, and all functional pages.
-10. **Deployment** -- Containerized frontend, Vercel/Render/Neon deployment configuration.
-
-Each phase was committed atomically so the repository tells a clear, linear story of how the application was constructed.
-
-## Email-to-Organization Lookup
-
-When a user logs in, the backend determines their organization without requiring them to specify it:
-
-1. User authenticates via Google OAuth and the backend receives their email.
-2. The backend queries the `users` table for that email to find the associated `organization_id`.
-3. If found, the user is logged in and scoped to that organization.
-4. If not found, the user is prompted to either register a new organization or accept a pending invitation.
-
-This means the **login page has no organization input field** -- the email alone resolves the tenant.
-
-For invitations, when an invited user clicks the invitation link and completes OAuth:
-- The backend verifies the OAuth email matches the invitation email exactly.
-- On match: the user account is activated with the pre-assigned role.
-- On mismatch: a `401 Unauthorized` is returned, and the invitation remains pending.
-
-## Email Service Setup
-
-Nexus uses an abstract email provider pattern, making it easy to swap implementations:
-
-- **Development** -- `ConsoleEmailProvider` logs invitation links directly to the backend console. No external service needed.
-- **Production** -- Swap in a real provider (e.g., SendGrid, Resend) by implementing the `EmailProvider` interface and updating the environment configuration.
-
-To configure a production email provider:
-
-1. Set the `EMAIL_PROVIDER` environment variable (e.g., `sendgrid`).
-2. Add the provider's API key to your environment (e.g., `SENDGRID_API_KEY`).
-3. The invitation service automatically uses the configured provider.
-
-## Setup Instructions
+## Local Development
 
 ### Prerequisites
 
 - Python 3.12+
-- Node.js 18+
-- Docker and Docker Compose
-- Google Cloud Console project with OAuth 2.0 credentials
+- Node 20+
+- Docker + Docker Compose
+- A Google Cloud project with OAuth 2.0 credentials
 
-### Local Development
+### 1. Clone and configure environment
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/Nexus.git
-   cd Nexus
-   ```
+```bash
+git clone https://github.com/<your-username>/Nexus.git
+cd Nexus
+cp .env.example .env
+```
 
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   ```
-   Fill in your Google OAuth client ID/secret, database URL, and JWT secret.
+Edit `.env` with your values:
 
-3. **Start the database:**
-   ```bash
-   docker compose -f docker/docker-compose.yml up -d postgres
-   ```
+```env
+# Google OAuth — create at https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/callback
 
-4. **Run the backend:**
-   ```bash
-   cd backend
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   uvicorn src.main:app --reload
-   ```
+# JWT — generate with: python -c "import secrets; print(secrets.token_hex(32))"
+JWT_SECRET_KEY=your-secret-key
 
-5. **Run the frontend:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+# Database (used locally via Docker)
+DATABASE_URL=postgresql+asyncpg://nexus:nexus_password@localhost:5432/nexus
+```
 
-6. **Open the app:**
-   - Frontend: http://localhost:5173
-   - API docs: http://localhost:8000/docs
+### 2. Run with Docker Compose (recommended)
 
-## License
+```bash
+docker compose -f docker/docker-compose.yml up --build
+```
 
-MIT
+This starts three services:
+- **postgres** on port `5432` (schema applied automatically via `init.sql`)
+- **api** on port `8000` — FastAPI with auto-reload
+- **web** on port `80` — React app served by nginx
+
+Open `http://localhost` in your browser.
+
+### 3. Run backend manually
+
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn src.main:app --reload --port 8000
+```
+
+API docs available at `http://localhost:8000/docs`.
+
+### 4. Run frontend manually
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+App available at `http://localhost:5173`.
+
+---
+
+## Authentication Flow
+
+```
+User                    Frontend               Backend              Google
+ │                          │                     │                    │
+ │  Click "Sign in"         │                     │                    │
+ │─────────────────────────>│                     │                    │
+ │                          │  GET /auth/google   │                    │
+ │                          │────────────────────>│                    │
+ │                          │  { auth_url }       │                    │
+ │                          │<────────────────────│                    │
+ │  Redirect to Google      │                     │                    │
+ │<─────────────────────────│                     │                    │
+ │                          │                     │                    │
+ │  Sign in with Google     │                     │                    │
+ │────────────────────────────────────────────────────────────────────>│
+ │  Redirect: /auth/callback?code=...             │                    │
+ │<────────────────────────────────────────────────────────────────────│
+ │                          │  GET /auth/callback │                    │
+ │                          │────────────────────>│  Exchange code     │
+ │                          │                     │───────────────────>│
+ │                          │                     │  { id_token, ... } │
+ │                          │                     │<───────────────────│
+ │                          │  { access_token }   │  Set refresh cookie│
+ │                          │<────────────────────│                    │
+```
+
+---
+
+## Role-Based Access Control
+
+| Permission | Viewer | Manager | Admin |
+|-----------|--------|---------|-------|
+| View users | ✓ | ✓ | ✓ |
+| Invite users | | ✓ | ✓ |
+| Change user role | | | ✓ |
+| Delete users | | | ✓ |
+
+Permissions are enforced server-side via `require_role()` FastAPI dependencies. The frontend additionally hides/disables controls the current user cannot use.
+
+---
+
+## Invitation Flow
+
+1. Admin fills in the Invite User modal (email + role).
+2. Backend creates an `Invitation` record with a signed token and logs the link (console provider).
+3. Recipient opens the link → lands on `AcceptInvitePage`.
+4. Page triggers Google OAuth with the invitation token attached.
+5. After Google sign-in, the backend verifies the Google email **matches** the invited email exactly. A mismatch returns `401`.
+6. On match, the user account is activated with the assigned role.
+
+---
+
+## Email-to-Org Lookup
+
+On the login page, users enter no organization identifier. Instead, the backend derives the organization from the authenticated Google email by querying which organizations have a matching member record. If exactly one match is found, the user is logged in; multiple matches would present an org selector (not yet implemented — v1.0 assumes one org per user).
+
+---
+
+## Email Provider
+
+The `EmailProvider` abstract class (`backend/src/services/email/provider.py`) defines a single `send_invitation` method. The `ConsoleEmailProvider` implements it by printing the invitation link to stdout — useful for local development without any external service.
+
+To swap in a real provider:
+
+```python
+# backend/src/services/email/sendgrid.py
+class SendGridEmailProvider(EmailProvider):
+    async def send_invitation(self, to_email: str, token: str, org_name: str) -> None:
+        # call SendGrid API
+        ...
+```
+
+Then update `SEND_INVITATION_VIA` in `config.py` or wire it via dependency injection.
+
+---
+
+## API Reference
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/health` | — | Liveness check |
+| `GET` | `/health/db` | — | DB readiness check |
+| `GET` | `/auth/google` | — | Get OAuth redirect URL |
+| `GET` | `/auth/callback` | — | OAuth callback, issues tokens |
+| `POST` | `/auth/refresh` | cookie | Rotate access token |
+| `POST` | `/auth/logout` | bearer | Revoke refresh token |
+| `POST` | `/auth/register` | — | Register org + first admin |
+| `GET` | `/users` | bearer | List org members |
+| `GET` | `/users/me` | bearer | Current user profile |
+| `PATCH` | `/users/{id}/role` | bearer (admin) | Update user role |
+| `DELETE` | `/users/{id}` | bearer (admin) | Remove user from org |
+| `POST` | `/invitations` | bearer (manager+) | Create invitation |
+| `GET` | `/invitations` | bearer | List pending invitations |
+| `GET` | `/invitations/accept` | — | Accept invitation (post-OAuth) |
+
+Full interactive docs: `http://localhost:8000/docs`
+
+---
+
+## Running Tests
+
+```bash
+cd backend
+pytest tests/ -v
+```
+
+The test suite covers:
+- Unit tests for all three services (organization, user, invitation) and the RBAC permission matrix
+- Integration tests for the full auth flow, user management endpoints, and invitation acceptance with email-match enforcement
+
+---
+
+## Deployment
+
+### Frontend → Vercel
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+cd frontend
+vercel --prod
+```
+
+Set the environment variable in the Vercel dashboard:
+```
+VITE_API_URL=https://your-render-api.onrender.com
+```
+
+The `vercel.json` at the project root configures SPA routing so all paths fall back to `index.html`.
+
+### Backend → Render
+
+1. Create a new **Web Service** on [render.com](https://render.com)
+2. Point it at the `backend/` directory
+3. Set **Build Command**: `pip install -r requirements.txt`
+4. Set **Start Command**: `uvicorn src.main:app --host 0.0.0.0 --port $PORT`
+5. Add all environment variables from `.env.example` in the Render dashboard
+
+The `render.yaml` in the project root defines the service declaratively.
+
+### Database → Neon
+
+1. Create a project at [neon.tech](https://neon.tech)
+2. Copy the connection string (use the `postgresql+asyncpg://...` format)
+3. Run the schema: paste `docker/init-scripts/init.sql` into the Neon SQL editor
+4. Set `DATABASE_URL` in both Render and your local `.env`
+
+---
+
+## Contributing
+
+This project follows conventional commits:
+
+```
+feat(scope): short description
+fix(scope): short description
+docs: short description
+test: short description
+chore: short description
+style(scope): short description
+```
+
+Where `scope` is one of: `db`, `auth`, `core`, `api`, `email`, `docker`, `web`, `ci`.
