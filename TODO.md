@@ -30,8 +30,8 @@
 - [x] Invitation service (create, validate token, accept, email match enforcement)
 
 ## Phase 5: Email Service
-- [ ] Abstract email provider interface
-- [ ] Console email provider (logs invitation links to stdout)
+- [x] Abstract email provider interface
+- [x] Console email provider (logs invitation links to stdout)
 
 ## Phase 6: API Layer
 - [x] FastAPI app setup with CORS and lifespan events
