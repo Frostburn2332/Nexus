@@ -5,6 +5,7 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from src.config import settings
 from src.models import Base, Organization, User, UserRole, UserStatus, Invitation, InvitationStatus
@@ -12,13 +13,14 @@ from src.auth.jwt import create_access_token
 
 TEST_DATABASE_URL = settings.database_url
 
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=NullPool)
 test_session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with engine.begin() as conn:
@@ -27,9 +29,16 @@ async def setup_database():
 
 @pytest_asyncio.fixture
 async def db() -> AsyncGenerator[AsyncSession, None]:
-    async with test_session_factory() as session:
+    """Provide a session bound to a savepoint so fixtures and API handlers
+    see the same data.  The outer transaction is rolled back after each test."""
+    async with engine.connect() as connection:
+        transaction = await connection.begin()
+        session = AsyncSession(bind=connection, expire_on_commit=False)
+
         yield session
-        await session.rollback()
+
+        await session.close()
+        await transaction.rollback()
 
 
 @pytest_asyncio.fixture

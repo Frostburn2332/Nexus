@@ -40,9 +40,9 @@ class Invitation(Base):
         default=InvitationStatus.PENDING,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, server_default=func.now()
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     organization: Mapped["Organization"] = relationship(back_populates="invitations")  # noqa: F821
     inviter: Mapped["User"] = relationship(foreign_keys=[invited_by])  # noqa: F821

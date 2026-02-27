@@ -28,6 +28,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://nexus:nexus_password@postgres:5432/nexus
     ports:
       - "8000:8000"
+    volumes:
+      - ../tests:/app/tests
     depends_on:
       postgres:
         condition: service_healthy

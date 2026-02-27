@@ -9,27 +9,20 @@ from src.main import app
 from src.models import User, UserRole, Organization, Invitation
 from src.auth.jwt import create_access_token, create_refresh_token
 from src.db import get_db
-from tests.conftest import test_session_factory
-
-
-async def override_get_db():
-    async with test_session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-
-
-app.dependency_overrides[get_db] = override_get_db
 
 
 @pytest_asyncio.fixture
-async def client() -> AsyncClient:
+async def client(db: AsyncSession) -> AsyncClient:
+    async def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+    app.dependency_overrides.pop(get_db, None)
 
 
 def auth_header(user: User) -> dict[str, str]:

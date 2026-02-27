@@ -69,7 +69,7 @@ class InvitationService:
         if invitation.status != InvitationStatus.PENDING:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation is no longer valid")
 
-        if datetime.now(timezone.utc) > invitation.expires_at.replace(tzinfo=timezone.utc):
+        if datetime.now(timezone.utc) > invitation.expires_at:
             await self.invitation_repo.update_status(invitation, InvitationStatus.EXPIRED)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation has expired")
 

@@ -12,6 +12,7 @@ from src.config import settings
 from src.db import get_db
 from src.auth.oauth import build_google_auth_url, exchange_code_for_tokens, get_google_user_info
 from src.auth.jwt import create_access_token, create_refresh_token, verify_refresh_token
+from src.repositories import UserRepository
 from src.services import OrganizationService, UserService, InvitationService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -125,8 +126,10 @@ async def refresh_access_token(
     user_id = uuid.UUID(payload["sub"])
     org_id = uuid.UUID(payload["org"])
 
-    user_service = UserService(db)
-    user = await user_service.get_by_id(user_id)
+    user_repo = UserRepository(db)
+    user = await user_repo.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
     new_access_token = create_access_token(user.id, user.organization_id)
     new_refresh_token = create_refresh_token(user.id, user.organization_id)
