@@ -22,7 +22,7 @@ class OrganizationService:
             organization_id=org.id,
             email=admin_email,
             name=admin_name,
-            role=UserRole.ADMIN,
+            role=UserRole.admin,
             status=UserStatus.ACTIVE,
             profile_picture=profile_picture,
         )
