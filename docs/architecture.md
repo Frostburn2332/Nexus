@@ -1,5 +1,19 @@
 # Nexus -- Architecture
 
+## Tech Stack
+
+| Layer | Technology | Rationale |
+|-------|-----------|-----------|
+| **Backend** | Python 3.12+, FastAPI | Async-first, auto-generated API docs, dependency injection for auth guards |
+| **ORM** | SQLAlchemy (async) | Mature, well-supported, async support via asyncpg |
+| **Auth** | Google OAuth 2.0, PyJWT | Industry-standard OAuth with lightweight JWT library |
+| **Database** | PostgreSQL | ACID compliance, robust relational model, enum support |
+| **Frontend** | React, Vite, TypeScript | Component-driven UI with type safety and fast HMR |
+| **Styling** | Tailwind CSS | Utility-first, rapid prototyping, consistent design |
+| **Email** | Console (dev), SendGrid/Resend (prod) | Abstract provider pattern for easy swapping |
+| **Containerization** | Docker, Docker Compose | Reproducible environments for local development |
+| **CI** | GitHub Actions | Native GitHub integration, free for public repos |
+| **Deployment** | Vercel (FE), Render (BE), Neon (DB) | Generous free tiers, minimal ops overhead |
 
 ## Architecture Overview
 

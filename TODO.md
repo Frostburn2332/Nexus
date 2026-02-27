@@ -8,9 +8,9 @@
 - [x] Implementation tracker (`TODO.md`)
 
 ## Phase 1: Project Configuration
-- [ ] Initialize backend project (`pyproject.toml`, `requirements.txt`, package skeleton)
-- [ ] Initialize frontend project (Vite + React + TypeScript + Tailwind CSS)
-- [ ] Add environment configuration (`.env.example`)
+- [x] Initialize backend project (`pyproject.toml`, `requirements.txt`, package skeleton)
+- [x] Initialize frontend project (Vite + React + TypeScript + Tailwind CSS)
+- [x] Add environment configuration (`.env.example`)
 
 ## Phase 2: Database Layer
 - [ ] PostgreSQL schema and init scripts (`docker/init-scripts/init.sql`)
