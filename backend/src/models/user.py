@@ -36,12 +36,12 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role", create_constraint=False),
+        Enum(UserRole, name="user_role", create_constraint=False, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=UserRole.VIEWER,
     )
     status: Mapped[UserStatus] = mapped_column(
-        Enum(UserStatus, name="user_status", create_constraint=False),
+        Enum(UserStatus, name="user_status", create_constraint=False, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=UserStatus.PENDING,
     )

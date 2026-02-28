@@ -28,14 +28,14 @@ class Invitation(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="user_role", create_constraint=False), nullable=False
+        Enum(UserRole, name="user_role", create_constraint=False, values_callable=lambda obj: [e.value for e in obj]), nullable=False
     )
     token: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     invited_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     status: Mapped[InvitationStatus] = mapped_column(
-        Enum(InvitationStatus, name="invitation_status", create_constraint=False),
+        Enum(InvitationStatus, name="invitation_status", create_constraint=False, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
         default=InvitationStatus.PENDING,
     )

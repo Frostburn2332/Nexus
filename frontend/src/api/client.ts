@@ -75,9 +75,12 @@ apiClient.interceptors.response.use(
         // IF REFRESH FAILS: The Refresh Token is dead. Wipe everything.
         clearAccessToken();
         
-        // Force a hard redirect to break the React state loop
-        if (window.location.pathname !== "/login") {
-          window.location.replace("/login"); 
+        // Force a hard redirect to break the React state loop.
+        // Don't redirect away from public pages that don't require auth.
+        const publicPaths = ["/login", "/register", "/invite/accept"];
+        const isPublicPage = publicPaths.some((p) => window.location.pathname.startsWith(p));
+        if (!isPublicPage) {
+          window.location.replace("/login");
         }
         return Promise.reject(refreshError);
       }
