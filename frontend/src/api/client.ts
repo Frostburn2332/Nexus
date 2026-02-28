@@ -1,5 +1,8 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 
+// In production: set VITE_API_URL=/api in Vercel dashboard.
+// Vercel proxies /api/* to the Render backend (same-origin, so httpOnly cookies work).
+// In local dev: VITE_API_URL=http://localhost:8000 (direct connection, no proxy needed).
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // In-memory token store
