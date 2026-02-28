@@ -35,6 +35,18 @@ class UserService:
         if target.id == current_user.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot change your own role")
 
+        if current_user.role == UserRole.MANAGER:
+            if target.role != UserRole.VIEWER:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Managers can only edit the role of Viewers",
+                )
+            if new_role == UserRole.ADMIN:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Managers cannot promote users to Admin",
+                )
+
         return await self.user_repo.update_role(target, new_role)
 
     async def delete_user(self, user_id: uuid.UUID, current_user: User) -> None:

@@ -25,6 +25,13 @@ class InvitationService:
     async def create_invitation(
         self, organization_id: uuid.UUID, email: str, name: str, role: UserRole, invited_by: uuid.UUID
     ) -> Invitation:
+        inviter = await self.user_repo.get_by_id(invited_by)
+        if inviter and inviter.role != UserRole.ADMIN and role == UserRole.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Managers cannot invite users with the Admin role",
+            )
+
         existing_user = await self.user_repo.get_by_email_and_org(email, organization_id)
         if existing_user:
             raise HTTPException(
@@ -52,7 +59,6 @@ class InvitationService:
             expires_at=expires_at,
         )
 
-        inviter = await self.user_repo.get_by_id(invited_by)
         org = await self.org_repo.get_by_id(organization_id)
         invitation_link = f"{settings.frontend_url}/invite/accept?token={token}"
 

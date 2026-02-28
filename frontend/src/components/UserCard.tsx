@@ -14,8 +14,11 @@ export default function UserCard({
   onChangeRole,
   onDelete,
 }: UserCardProps) {
-  const canManage = currentUserRole === "admin" || currentUserRole === "manager";
   const canDelete = currentUserRole === "admin";
+  // Managers can only edit Viewers; Admins can edit anyone except themselves (handled upstream)
+  const canEditRole =
+    currentUserRole === "admin" ||
+    (currentUserRole === "manager" && user.role === "viewer");
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm transition hover:shadow-md sm:flex-row sm:items-center sm:justify-between">
@@ -52,10 +55,16 @@ export default function UserCard({
           {user.status === "active" ? "Active" : "Pending"}
         </span>
 
-        {canManage && (
+        {(currentUserRole === "admin" || currentUserRole === "manager") && (
           <button
-            onClick={() => onChangeRole?.(user)}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 active:scale-95"
+            onClick={() => canEditRole && onChangeRole?.(user)}
+            disabled={!canEditRole}
+            title={!canEditRole ? "Managers can only edit Viewers" : undefined}
+            className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
+              canEditRole
+                ? "border-gray-200 text-gray-600 hover:bg-gray-50 active:scale-95"
+                : "border-gray-100 text-gray-300 cursor-not-allowed"
+            }`}
           >
             Edit role
           </button>

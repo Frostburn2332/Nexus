@@ -16,7 +16,7 @@ export default function App() {
           {/* Public routes */}
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/invite" element={<AcceptInvitePage />} />
+          <Route path="/invite/accept" element={<AcceptInvitePage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Protected routes */}

@@ -231,6 +231,7 @@ export default function DashboardPage() {
       {/* Modals */}
       {showInviteModal && (
         <InviteUserModal
+          currentUserRole={currentUser.role}
           onClose={() => setShowInviteModal(false)}
           onSuccess={(inv) => {
             setInvitations((prev) => [inv, ...prev]);
@@ -243,6 +244,7 @@ export default function DashboardPage() {
       {editRoleTarget && (
         <EditRoleModal
           user={editRoleTarget}
+          currentUserRole={currentUser.role}
           onClose={() => setEditRoleTarget(null)}
           onSuccess={(updated) => {
             setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));

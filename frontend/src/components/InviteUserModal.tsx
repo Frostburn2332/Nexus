@@ -3,20 +3,25 @@ import { invitationsApi } from "../api/client";
 import type { Invitation, UserRole } from "../types";
 
 interface InviteUserModalProps {
+  currentUserRole: UserRole;
   onClose: () => void;
   onSuccess: (invitation: Invitation) => void;
 }
 
-const ROLE_OPTIONS: { value: UserRole; label: string }[] = [
+const ALL_ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "viewer", label: "Viewer" },
   { value: "manager", label: "Manager" },
   { value: "admin", label: "Admin" },
 ];
 
 export default function InviteUserModal({
+  currentUserRole,
   onClose,
   onSuccess,
 }: InviteUserModalProps) {
+  const ROLE_OPTIONS = currentUserRole === "admin"
+    ? ALL_ROLE_OPTIONS
+    : ALL_ROLE_OPTIONS.filter((o) => o.value !== "admin");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState<UserRole>("viewer");
@@ -25,7 +30,7 @@ export default function InviteUserModal({
   const [createdInvitation, setCreatedInvitation] = useState<Invitation | null>(null);
 
   const inviteLink = createdInvitation
-    ? `${window.location.origin}/invite?token=${createdInvitation.token}`
+    ? `${window.location.origin}/invite/accept?token=${createdInvitation.token}`
     : null;
 
   const handleSubmit = async (e: FormEvent) => {

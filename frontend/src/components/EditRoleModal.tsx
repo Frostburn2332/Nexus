@@ -5,17 +5,21 @@ import RoleBadge from "./RoleBadge";
 
 interface EditRoleModalProps {
   user: User;
+  currentUserRole: UserRole;
   onClose: () => void;
   onSuccess: (updated: User) => void;
 }
 
-const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
+const ALL_ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
   { value: "viewer", label: "Viewer", description: "Read-only access to team data." },
   { value: "manager", label: "Manager", description: "Can invite members and manage roles." },
   { value: "admin", label: "Admin", description: "Full access including deleting members." },
 ];
 
-export default function EditRoleModal({ user, onClose, onSuccess }: EditRoleModalProps) {
+export default function EditRoleModal({ user, currentUserRole, onClose, onSuccess }: EditRoleModalProps) {
+  const ROLE_OPTIONS = currentUserRole === "admin"
+    ? ALL_ROLE_OPTIONS
+    : ALL_ROLE_OPTIONS.filter((o) => o.value !== "admin");
   const [selectedRole, setSelectedRole] = useState<UserRole>(user.role);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
