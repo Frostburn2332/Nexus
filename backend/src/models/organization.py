@@ -22,5 +22,5 @@ class Organization(Base):
         DateTime, nullable=False, server_default=func.now(), onupdate=func.now()
     )
 
-    users: Mapped[list["User"]] = relationship(back_populates="organization")  # noqa: F821
-    invitations: Mapped[list["Invitation"]] = relationship(back_populates="organization")  # noqa: F821
+    users: Mapped[list["User"]] = relationship(back_populates="organization", passive_deletes=True)  # noqa: F821
+    invitations: Mapped[list["Invitation"]] = relationship(back_populates="organization", passive_deletes=True)  # noqa: F821
