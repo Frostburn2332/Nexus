@@ -32,8 +32,8 @@ export default function App() {
           />
 
           {/* Default redirects */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/register" replace />} />
+          <Route path="*" element={<Navigate to="/register" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
