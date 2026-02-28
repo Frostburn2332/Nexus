@@ -5,8 +5,8 @@
   "installCommand": "npm install",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://nexus-api.onrender.com/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://nexus-vci4.onrender.com/$1"
     },
     {
       "source": "/(.*)",
