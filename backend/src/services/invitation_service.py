@@ -32,11 +32,16 @@ class InvitationService:
                 detail="Managers cannot invite users with the Admin role",
             )
 
-        existing_user = await self.user_repo.get_by_email_and_org(email, organization_id)
-        if existing_user:
+        existing_user_globally = await self.user_repo.get_by_email(email)
+        if existing_user_globally:
+            if existing_user_globally.organization_id == organization_id:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="User with this email already exists in the organization",
+                )
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="User with this email already exists in the organization",
+                detail="This email address is already associated with another organization. They must be removed from that organization before they can be invited here.",
             )
 
         existing_invitation = await self.invitation_repo.get_pending_by_email_and_org(email, organization_id)
@@ -91,6 +96,13 @@ class InvitationService:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="OAuth email does not match invitation email",
+            )
+
+        existing_user_globally = await self.user_repo.get_by_email(invitation.email)
+        if existing_user_globally:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="org_conflict: This email is already part of another organization. Please have your account removed from that organization before accepting this invitation.",
             )
 
         user = await self.user_repo.create(

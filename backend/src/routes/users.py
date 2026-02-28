@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -8,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db import get_db
 from src.models import User, UserRole
 from src.auth.dependencies import get_current_user, require_role
-from src.services import UserService
+from src.services import UserService, OrganizationService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -21,8 +22,13 @@ class UserResponse(BaseModel):
     profile_picture: str | None
     role: str
     status: str
+    created_at: datetime | None = None
 
     model_config = {"from_attributes": True}
+
+
+class MeResponse(UserResponse):
+    organization_name: str | None = None
 
 
 class UpdateRoleRequest(BaseModel):
@@ -38,9 +44,16 @@ async def list_users(
     return await user_service.list_by_organization(current_user.organization_id)
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
-    return current_user
+@router.get("/me", response_model=MeResponse)
+async def get_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    org_service = OrganizationService(db)
+    org = await org_service.get_by_id(current_user.organization_id)
+    data = MeResponse.model_validate(current_user)
+    data.organization_name = org.name if org else None
+    return data
 
 
 @router.patch("/{user_id}/role", response_model=UserResponse)

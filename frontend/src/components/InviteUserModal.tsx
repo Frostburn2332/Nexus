@@ -14,6 +14,12 @@ const ALL_ROLE_OPTIONS: { value: UserRole; label: string }[] = [
   { value: "admin", label: "Admin" },
 ];
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isValidEmail(value: string): boolean {
+  return EMAIL_REGEX.test(value.trim());
+}
+
 export default function InviteUserModal({
   currentUserRole,
   onClose,
@@ -27,16 +33,44 @@ export default function InviteUserModal({
   const [role, setRole] = useState<UserRole>("viewer");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
   const [createdInvitation, setCreatedInvitation] = useState<Invitation | null>(null);
 
   const inviteLink = createdInvitation
     ? `${window.location.origin}/invite/accept?token=${createdInvitation.token}`
     : null;
 
+  const validateEmail = (value: string) => {
+    if (!value.trim()) {
+      setEmailError("Email address is required.");
+    } else if (!isValidEmail(value)) {
+      setEmailError("Please enter a valid email address.");
+    } else {
+      setEmailError("");
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (emailTouched) validateEmail(value);
+  };
+
+  const handleEmailBlur = () => {
+    setEmailTouched(true);
+    validateEmail(email);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !name.trim()) {
-      setError("Email and name are required.");
+    setEmailTouched(true);
+    validateEmail(email);
+
+    if (!name.trim()) {
+      setError("Full name is required.");
+      return;
+    }
+    if (!email.trim() || !isValidEmail(email)) {
       return;
     }
     setError("");
@@ -129,10 +163,18 @@ export default function InviteUserModal({
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={handleEmailBlur}
                 placeholder="jane@company.com"
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className={`mt-1 block w-full rounded-lg border px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 ${
+                  emailError
+                    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                }`}
               />
+              {emailError && (
+                <p className="mt-1 text-xs text-red-600">{emailError}</p>
+              )}
             </div>
 
             <div>

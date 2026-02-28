@@ -19,6 +19,7 @@ export interface User {
   status: UserStatus;
   created_at?: string;
   updated_at?: string;
+  organization_name?: string;
 }
 
 export interface Invitation {

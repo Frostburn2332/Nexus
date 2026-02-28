@@ -113,6 +113,12 @@ export const usersApi = {
   deleteUser: (userId: string) => apiClient.delete(`/users/${userId}`),
 };
 
+// --- Organizations API ---
+export const organizationsApi = {
+  deleteMyOrg: (confirmation: string) =>
+    apiClient.delete("/organizations/me", { data: { confirmation } }),
+};
+
 // --- Invitations API ---
 export const invitationsApi = {
   create: (data: import("../types").CreateInvitationRequest) =>

@@ -23,7 +23,7 @@ class UserStatus(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
     __table_args__ = (
-        UniqueConstraint("email", "organization_id", name="uq_user_email_org"),
+        UniqueConstraint("email", name="uq_user_email"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(

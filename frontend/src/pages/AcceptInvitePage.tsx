@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-type PageState = "idle" | "loading" | "error_no_token" | "error_mismatch" | "error_generic";
+type PageState = "idle" | "loading" | "error_no_token" | "error_mismatch" | "error_org_conflict" | "error_generic";
 
 export default function AcceptInvitePage() {
   const { loginWithGoogle } = useAuth();
@@ -30,8 +30,13 @@ export default function AcceptInvitePage() {
     setPageState("loading");
     try {
       await loginWithGoogle("invite", { invitation_token: token });
-    } catch {
-      setPageState("error_generic");
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "";
+      if (detail.startsWith("org_conflict:")) {
+        setPageState("error_org_conflict");
+      } else {
+        setPageState("error_generic");
+      }
     }
   };
 
@@ -50,6 +55,23 @@ export default function AcceptInvitePage() {
             className="mt-4 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 transition"
           >
             Try again
+          </button>
+        }
+      />
+    );
+  }
+
+  if (pageState === "error_org_conflict") {
+    return (
+      <ErrorCard
+        title="Already part of another organization"
+        message="Your email address is already associated with a different organization on Nexus. To join this one, you must first be removed from your current organization. Please contact that organization's admin, then try accepting this invitation again."
+        action={
+          <button
+            onClick={() => navigate("/login")}
+            className="mt-4 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+          >
+            Go to login
           </button>
         }
       />

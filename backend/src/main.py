@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings
-from src.routes import health, auth, users, invitations
+from src.routes import health, auth, users, invitations, organizations
 
 
 @asynccontextmanager
@@ -44,3 +44,4 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(invitations.router)
+app.include_router(organizations.router)

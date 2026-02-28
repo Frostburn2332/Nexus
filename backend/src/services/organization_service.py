@@ -31,3 +31,10 @@ class OrganizationService:
 
     async def get_by_id(self, org_id: uuid.UUID) -> Organization | None:
         return await self.org_repo.get_by_id(org_id)
+
+    async def delete(self, org_id: uuid.UUID) -> None:
+        """Delete an organization and all its data (cascade handled by DB)."""
+        org = await self.org_repo.get_by_id(org_id)
+        if org:
+            await self.db.delete(org)
+            await self.db.flush()
