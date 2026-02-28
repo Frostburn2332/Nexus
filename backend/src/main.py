@@ -21,14 +21,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# --- THE FIX ---
-# Define the list of allowed origins explicitly.
-# We include both the setting and the raw localhost variations.
+_frontend = str(settings.frontend_url).rstrip("/")
 origins = [
-    str(settings.frontend_url).rstrip("/"), # Remove trailing slash if present
-    "http://localhost",                     # Standard Docker/Nginx port
-    "http://localhost:80",                  # Explicit port 80
-    "http://localhost:5173",                # Standard Vite Dev port
+    _frontend,
+    "http://localhost",
+    "http://localhost:80",
+    "http://localhost:5173",
 ]
 
 app.add_middleware(
@@ -38,7 +36,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# ----------------
 
 app.include_router(health.router)
 app.include_router(auth.router)

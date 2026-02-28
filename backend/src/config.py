@@ -14,9 +14,9 @@ class Settings(BaseSettings):
 
     email_provider: str = "console"
 
-    # Neo SMTP (used when email_provider = "neo")
+    # SMTP settings (used when email_provider = "neo" or "gmail")
     mail_server: str = ""
-    mail_port: int = 465
+    mail_port: int = 587
     mail_username: str = ""
     mail_password: str = ""
     mail_from: str = ""

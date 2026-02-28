@@ -1,4 +1,3 @@
-import base64
 import smtplib
 import ssl
 from email.mime.multipart import MIMEMultipart
@@ -8,8 +7,12 @@ from src.config import settings
 from .provider import EmailProvider
 
 
-class NeoEmailProvider(EmailProvider):
-    """Sends transactional email via Neo SMTP using SMTP_SSL on port 465."""
+class GmailEmailProvider(EmailProvider):
+    """Sends transactional email via Gmail SMTP using STARTTLS on port 587.
+
+    Requires a 16-character Google App Password (not your Gmail account password).
+    Generate one at: https://myaccount.google.com/apppasswords
+    """
 
     async def send_invitation(
         self,
@@ -59,20 +62,12 @@ class NeoEmailProvider(EmailProvider):
         msg.attach(MIMEText(plain, "plain"))
         msg.attach(MIMEText(html, "html"))
 
+        # Gmail App Password flow: connect plain, upgrade to TLS, then login.
+        # smtplib.login() works correctly here — no custom auth challenge needed.
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(settings.mail_server, settings.mail_port, context=context) as server:
-            # Neo only supports AUTH LOGIN (not AUTH PLAIN).
-            # smtplib.login() tries PLAIN first and Neo rejects it with 535.
-            # Use a call counter to respond to Neo's two-step challenge:
-            # first call → username, second call → password.
-            call_count = 0
-
-            def auth_login(_challenge: bytes) -> str:
-                nonlocal call_count
-                call_count += 1
-                if call_count == 1:
-                    return base64.b64encode(settings.mail_username.encode()).decode()
-                return base64.b64encode(settings.mail_password.encode()).decode()
-
-            server.auth("LOGIN", auth_login, initial_response_ok=False)
+        with smtplib.SMTP(settings.mail_server, settings.mail_port) as server:
+            server.ehlo()
+            server.starttls(context=context)
+            server.ehlo()
+            server.login(settings.mail_username, settings.mail_password)
             server.sendmail(settings.mail_from, to_email, msg.as_string())

@@ -29,9 +29,6 @@ class UserService:
     ) -> User:
         target = await self.get_by_id(user_id)
 
-        if target.organization_id != current_user.organization_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot modify users outside your organization")
-
         if target.id == current_user.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot change your own role")
 
@@ -51,9 +48,6 @@ class UserService:
 
     async def delete_user(self, user_id: uuid.UUID, current_user: User) -> None:
         target = await self.get_by_id(user_id)
-
-        if target.organization_id != current_user.organization_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete users outside your organization")
 
         if target.id == current_user.id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete yourself")

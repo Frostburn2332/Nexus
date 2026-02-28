@@ -7,23 +7,44 @@ services:
     startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
+      # ── Database (Neon) ─────────────────────────────────────────────────────
       - key: DATABASE_URL
-        sync: false
+        sync: false           # paste Neon connection string in Render dashboard
+
+      # ── Google OAuth ────────────────────────────────────────────────────────
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_REDIRECT_URI
-        sync: false
+        sync: false           # https://<your-render-service>.onrender.com/auth/callback
+
+      # ── JWT ─────────────────────────────────────────────────────────────────
       - key: JWT_SECRET_KEY
-        sync: false
+        sync: false           # python -c "import secrets; print(secrets.token_hex(32))"
       - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
         value: "15"
       - key: JWT_REFRESH_TOKEN_EXPIRE_DAYS
         value: "7"
+
+      # ── Email (Gmail App Password) ───────────────────────────────────────────
       - key: EMAIL_PROVIDER
-        value: console
+        value: gmail
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false           # your Gmail address
+      - key: MAIL_PASSWORD
+        sync: false           # 16-char Google App Password
+      - key: MAIL_FROM
+        sync: false           # same as MAIL_USERNAME
+
+      # ── Application ─────────────────────────────────────────────────────────
       - key: APP_ENV
         value: production
+      - key: BACKEND_URL
+        sync: false           # https://<your-render-service>.onrender.com
       - key: FRONTEND_URL
-        sync: false
+        sync: false           # https://<your-vercel-project>.vercel.app
