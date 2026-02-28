@@ -202,7 +202,7 @@ export default function DashboardPage() {
           </section>
 
           {/* Pending invitations */}
-          {canManage && invitations.length > 0 && (
+          {canManage && invitations.length > 0 && (statusFilter === "all" || statusFilter === "pending") && (
             <section>
               <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">
                 Pending Invitations ({invitations.length})
