@@ -14,6 +14,13 @@ class Settings(BaseSettings):
 
     email_provider: str = "console"
 
+    # Neo SMTP (used when email_provider = "neo")
+    mail_server: str = ""
+    mail_port: int = 465
+    mail_username: str = ""
+    mail_password: str = ""
+    mail_from: str = ""
+
     app_env: str = "development"
     backend_url: str = "http://localhost:8000"
     frontend_url: str = "http://localhost:5173"

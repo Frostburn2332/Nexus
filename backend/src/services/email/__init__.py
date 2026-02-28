@@ -1,10 +1,12 @@
 from .provider import EmailProvider
 from .console import ConsoleEmailProvider
+from .neo import NeoEmailProvider
 
 
 def get_email_provider(provider_name: str = "console") -> EmailProvider:
     providers = {
         "console": ConsoleEmailProvider,
+        "neo": NeoEmailProvider,
     }
 
     provider_class = providers.get(provider_name)
@@ -14,4 +16,4 @@ def get_email_provider(provider_name: str = "console") -> EmailProvider:
     return provider_class()
 
 
-__all__ = ["EmailProvider", "ConsoleEmailProvider", "get_email_provider"]
+__all__ = ["EmailProvider", "ConsoleEmailProvider", "NeoEmailProvider", "get_email_provider"]
