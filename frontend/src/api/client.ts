@@ -38,58 +38,58 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config;
 });
 
-// 
-
-// THE FIX: Enhanced Interceptor with Circuit Breaker
+// On 401: attempt a silent token refresh then retry the original request once.
+// If the failing request IS the refresh endpoint itself, bail immediately to
+// prevent an infinite loop (the refresh cookie is simply absent or expired).
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // 1. Check if the error is 401 and we haven't tried to retry yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      
-      // If we are already on the login page, don't try to refresh (prevents loops)
-      if (window.location.pathname === "/login") {
-        return Promise.reject(error);
-      }
-
-      originalRequest._retry = true; 
-
-      try {
-        // We use the base axios instance here to avoid the interceptor adding 
-        // a dead/expired Bearer token to the refresh call itself
-        const { data } = await axios.post<{ access_token: string }>(
-          `${BASE_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newToken = data.access_token;
-        setAccessToken(newToken);
-
-        // Update the header for the retry
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        }
-
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // IF REFRESH FAILS: The Refresh Token is dead. Wipe everything.
-        clearAccessToken();
-        
-        // Force a hard redirect to break the React state loop.
-        // Don't redirect away from public pages that don't require auth.
-        const publicPaths = ["/login", "/register", "/invite/accept"];
-        const isPublicPage = publicPaths.some((p) => window.location.pathname.startsWith(p));
-        if (!isPublicPage) {
-          window.location.replace("/login");
-        }
-        return Promise.reject(refreshError);
-      }
+    if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    // Never try to refresh when the refresh endpoint itself failed.
+    const isRefreshCall =
+      typeof originalRequest.url === "string" &&
+      originalRequest.url.includes("/auth/refresh");
+    if (isRefreshCall) {
+      clearAccessToken();
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+
+    try {
+      // Use the raw axios instance (not apiClient) so this call bypasses the
+      // interceptor and does not add a stale Bearer token to the refresh request.
+      const { data } = await axios.post<{ access_token: string }>(
+        `${BASE_URL}/auth/refresh`,
+        {},
+        { withCredentials: true }
+      );
+
+      setAccessToken(data.access_token);
+
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
+      }
+
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      clearAccessToken();
+
+      // Only hard-redirect to /login from protected pages, not public ones.
+      const publicPaths = ["/login", "/register", "/invite/accept", "/auth/callback"];
+      const isPublicPage = publicPaths.some((p) =>
+        window.location.pathname.startsWith(p)
+      );
+      if (!isPublicPage) {
+        window.location.replace("/login");
+      }
+      return Promise.reject(refreshError);
+    }
   }
 );
 
